@@ -1,0 +1,240 @@
+<!-- index.html (Updated) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#8b5cf6">
+    <meta property="og:title" content="Forum - Live Discussion Spaces">
+    <meta property="og:description" content="Join meaningful conversations in real-time discussion forums. Connect with communities around topics you love.">
+    <meta property="og:image" content="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum discussion app icon purple gradient&w=512&h=512&style=professional">
+    <meta property="og:type" content="website">
+    <title>Forum - Live Discussion Spaces</title>
+    <link rel="icon" type="image/png" href="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=minimalist forum icon purple gradient&w=64&h=64&style=professional">
+    <link rel="manifest" href="/public/manifest.json">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="min-h-screen overflow-hidden">
+    <!-- Main Container -->
+    <div id="app" class="h-screen flex flex-col">
+        <!-- Top Header (Hidden initially) -->
+        <header id="mainHeader" class="glass-morphism px-4 py-3 flex items-center justify-between relative z-10 hidden">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-amber-500 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-comments text-white text-sm"></i>
+                </div>
+                <h1 class="text-xl font-bold gradient-text">Forum</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="searchBtn" class="text-xl text-gray-400 hover:text-white transition">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button id="notificationBtn" class="text-xl text-gray-400 hover:text-white transition relative">
+                    <i class="far fa-bell"></i>
+                    <span class="absolute -top-1 -right-1 bg-amber-500 rounded-full w-2 h-2 pulse-badge hidden" id="notificationDot"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="mainContent" class="flex-1 overflow-y-auto">
+            <!-- Welcome Screen -->
+            <div id="welcomeScreen" class="h-full flex flex-col items-center justify-center p-6">
+                <div class="max-w-sm w-full space-y-6">
+                    <div class="text-center">
+                        <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-amber-500 rounded-3xl mx-auto mb-6 flex items-center justify-center">
+                            <i class="fas fa-comments text-4xl text-white"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold mb-2">Welcome to Forum</h2>
+                        <p class="text-gray-400">Where conversations come alive</p>
+                    </div>
+                    
+                    <form id="joinForm" class="space-y-4">
+                        <input type="text" id="displayName" placeholder="Your display name" required
+                            class="w-full px-4 py-3 rounded-xl focus:outline-none transition glass-morphism">
+                        <textarea id="aboutMe" placeholder="What are you interested in?" rows="3"
+                            class="w-full px-4 py-3 rounded-xl focus:outline-none transition resize-none glass-morphism"></textarea>
+                        
+                        <div class="space-y-2">
+                            <p class="text-sm text-gray-400">Select your interests:</p>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="interest-tag">
+                                    <input type="checkbox" class="hidden" value="technology">
+                                    <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Technology</span>
+                                </label>
+                                <label class="interest-tag">
+                                    <input type="checkbox" class="hidden" value="art">
+                                    <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Art & Design</span>
+                                </label>
+                                <label class="interest-tag">
+                                    <input type="checkbox" class="hidden" value="music">
+                                    <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Music</span>
+                                </label>
+                                <label class="interest-tag">
+                                    <input type="checkbox" class="hidden" value="gaming">
+                                    <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Gaming</span>
+                                </label>
+                                <label class="interest-tag">
+                                    <input type="checkbox" class="hidden" value="philosophy">
+                                    <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Philosophy</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition floating-button">
+                            Enter Forum
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Discussions Screen -->
+            <div id="discussionsScreen" class="hidden">
+                <div class="sticky top-0 z-10 glass-morphism px-4 py-3 mb-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-bold">Live Discussions</h2>
+                        <button id="startDiscussionBtn" class="bg-purple-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-purple-700 transition floating-button">
+                            <i class="fas fa-plus mr-2"></i>Start
+                        </button>
+                    </div>
+                    
+                    <!-- Topic Filters -->
+                    <div class="flex space-x-2 overflow-x-auto mt-3 pb-2 scrollbar-hide" id="topicFilters">
+                        <button class="topic-filter px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition bg-purple-600 text-white" data-topic="all">
+                            <i class="fas fa-globe-americas mr-1"></i>All Topics
+                        </button>
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="trending">
+                            <i class="fas fa-fire mr-1"></i>Trending
+                        </button>
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="philosophy">
+                            <i class="fas fa-brain mr-1"></i>Philosophy
+                        </button>
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="technology">
+                            <i class="fas fa-microchip mr-1"></i>Technology
+                        </button>
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="culture">
+                            <i class="fas fa-palette mr-1"></i>Culture
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Forums List -->
+                <div id="forumsList" class="px-4 space-y-3 pb-20">
+                    <!-- Forums will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Discover Screen -->
+            <div id="discoverScreen" class="hidden px-4 py-6 space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold mb-1">Discover</h2>
+                    <p class="text-gray-400">Find your next great conversation</p>
+                </div>
+                
+                <!-- Search -->
+                <div class="relative">
+                    <input type="search" placeholder="Search discussions, topics, people..." 
+                        class="w-full px-4 py-3 pl-12 rounded-xl focus:outline-none transition glass-morphism">
+                    <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                </div>
+                
+                <!-- Featured Discussions -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-3 flex items-center">
+                        <i class="fas fa-star text-amber-500 mr-2"></i>Featured Today
+                    </h3>
+                    <div id="featuredForums" class="space-y-3">
+                        <!-- Featured forums will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Screen -->
+            <div id="activityScreen" class="hidden px-4 py-6 space-y-6">
+                <h2 class="text-2xl font-bold">Activity</h2>
+                
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="glass-morphism p-4 rounded-xl text-center">
+                        <p class="text-3xl font-bold gradient-text" id="discussionsJoined">0</p>
+                        <p class="text-sm text-gray-400">Discussions</p>
+                    </div>
+                    <div class="glass-morphism p-4 rounded-xl text-center">
+                        <p class="text-3xl font-bold gradient-text" id="messagesCount">0</p>
+                        <p class="text-sm text-gray-400">Messages</p>
+                    </div>
+                    <div class="glass-morphism p-4 rounded-xl text-center">
+                        <p class="text-3xl font-bold gradient-text" id="connectionsCount">0</p>
+                        <p class="text-sm text-gray-400">Connections</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Screen -->
+            <div id="profileScreen" class="hidden px-4 py-6 space-y-6">
+                <div class="text-center">
+                    <div class="w-28 h-28 bg-gradient-to-br from-purple-500 to-amber-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <i class="fas fa-user text-4xl text-white"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold" id="profileName"></h2>
+                    <p class="text-gray-400 mt-1" id="profileBio"></p>
+                </div>
+                
+                <!-- Settings Options -->
+                <div class="space-y-2">
+                    <button id="signOutBtn" class="w-full bg-red-500/20 text-red-400 p-4 rounded-xl flex items-center justify-center hover:bg-red-500/30 transition mt-4">
+                        <i class="fas fa-sign-out-alt mr-3"></i>Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- Discussion Room -->
+            <div id="discussionRoom" class="hidden h-full flex flex-col">
+                <!-- Room Header -->
+                <div class="glass-morphism px-4 py-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3 flex-1">
+                            <button id="exitRoomBtn" class="text-xl">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-lg" id="roomTitle"></h3>
+                                <div class="flex items-center space-x-3 text-sm text-gray-400">
+                                    <span><i class="fas fa-users mr-1"></i><span id="participantCount">0</span></span>
+                                    <span>•</span>
+                                    <span id="roomTopic"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Messages Area -->
+                <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <!-- Messages will be inserted here -->
+                </div>
+                
+                <!-- Message Input -->
+                <div class="glass-morphism p-4">
+                    <form id="messageForm" class="flex space-x-2">
+                        <input type="text" id="messageInput" placeholder="Share your thoughts..." 
+                            class="message-input flex-1 px-4 py-2.5 rounded-full focus:outline-none">
+                        <button type="submit" class="bg-purple-600 px-5 py-2.5 rounded-full hover:bg-purple-700 transition">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav id="bottomNav" class="nav-dock hidden safe-area-inset">
+            <div class="flex justify-around py-2">
+                <button class="nav-item flex flex-col items-center p-3 active" data-screen="discussions">
+                    <i class="fas fa-comments text-xl mb-1"></i>
+                    <span class="text-xs">Forums</span
