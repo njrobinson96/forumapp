@@ -1,4 +1,3 @@
-/* package.json */
 {
   "name": "forum-app",
   "version": "1.0.0",
@@ -10,7 +9,7 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "@vercel/kv": "^1.0.1",
+    "@upstash/redis": "^1.25.0",
     "nanoid": "^3.3.7"
   },
   "devDependencies": {
