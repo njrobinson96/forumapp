@@ -17,24 +17,39 @@ export default async function handler(req, res) {
             // Create new user
             const { displayName, aboutMe, interests } = req.body;
             
-            if (!displayName) {
+            if (!displayName || displayName.trim().length === 0) {
                 return res.status(400).json({ error: 'Display name is required' });
+            }
+            
+            // Check for duplicate display names
+            const existingUsers = await kv.smembers('users');
+            for (const existingUserId of existingUsers) {
+                const existingUser = await kv.get(`user:${existingUserId}`);
+                if (existingUser && existingUser.displayName.toLowerCase() === displayName.toLowerCase()) {
+                    return res.status(409).json({ error: 'Display name already taken' });
+                }
             }
             
             const userId = nanoid();
             const user = {
                 id: userId,
-                displayName,
-                aboutMe: aboutMe || '',
+                displayName: displayName.trim(),
+                aboutMe: aboutMe ? aboutMe.trim() : '',
                 interests: interests || [],
                 joinedAt: new Date().toISOString(),
+                lastActive: new Date().toISOString(),
                 messageCount: 0,
-                discussionsJoined: []
+                discussionsJoined: [],
+                isOnline: true
             };
             
             // Store user in KV
             await kv.set(`user:${userId}`, user);
             await kv.sadd('users', userId);
+            await kv.sadd('activeUsers', userId);
+            
+            // Set user session expiry (24 hours)
+            await kv.expire(`user:${userId}`, 86400);
             
             return res.status(200).json(user);
         }
@@ -53,6 +68,12 @@ export default async function handler(req, res) {
                 return res.status(404).json({ error: 'User not found' });
             }
             
+            // Update last active timestamp
+            user.lastActive = new Date().toISOString();
+            user.isOnline = true;
+            await kv.set(`user:${userId}`, user);
+            await kv.sadd('activeUsers', userId);
+            
             return res.status(200).json(user);
         }
         
@@ -64,6 +85,14 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'User ID is required' });
             }
             
+            // Update user status to offline
+            const user = await kv.get(`user:${userId}`);
+            if (user) {
+                user.isOnline = false;
+                user.lastActive = new Date().toISOString();
+                await kv.set(`user:${userId}`, user);
+            }
+            
             // Remove from active users
             await kv.srem('activeUsers', userId);
             
@@ -71,8 +100,12 @@ export default async function handler(req, res) {
         }
         
         return res.status(405).json({ error: 'Method not allowed' });
+        
     } catch (error) {
         console.error('Auth error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ 
+            error: 'Internal server error',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 }
