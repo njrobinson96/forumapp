@@ -1,5 +1,5 @@
 // api/messages.js
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';  const redis = Redis.fromEnv();
 import { nanoid } from 'nanoid';
 
 export default async function handler(req, res) {
@@ -45,13 +45,13 @@ async function handleGetMessages(req, res) {
     
     try {
         // Verify forum exists
-        const forum = await kv.get(`forum:${forumId}`);
+        const forum = await redis.get(`forum:${forumId}`);
         if (!forum) {
             return res.status(404).json({ error: 'Forum not found' });
         }
         
         // Get message IDs with pagination
-        const messageIds = await kv.lrange(
+        const messageIds = await redis.lrange(
             `forum:${forumId}:messages`, 
             parseInt(offset), 
             parseInt(offset) + parseInt(limit) - 1
@@ -60,7 +60,7 @@ async function handleGetMessages(req, res) {
         const messages = [];
         
         // Fetch messages in parallel for better performance
-        const messagePromises = messageIds.map(msgId => kv.get(`message:${msgId}`));
+        const messagePromises = messageIds.map(msgId => redis.get(`message:${msgId}`));
         const messageResults = await Promise.all(messagePromises);
         
         // Filter out null results and sort by timestamp
@@ -76,7 +76,7 @@ async function handleGetMessages(req, res) {
         return res.status(200).json({
             messages,
             hasMore: messageIds.length === parseInt(limit),
-            total: await kv.llen(`forum:${forumId}:messages`) || 0
+            total: await redis.llen(`forum:${forumId}:messages`) || 0
         });
     } catch (error) {
         console.error('Get messages error:', error);
@@ -104,8 +104,8 @@ async function handleSendMessage(req, res) {
     try {
         // Verify user and forum exist
         const [user, forum] = await Promise.all([
-            kv.get(`user:${userId}`),
-            kv.get(`forum:${forumId}`)
+            redis.get(`user:${userId}`),
+            redis.get(`forum:${forumId}`)
         ]);
         
         if (!user) {
@@ -117,14 +117,14 @@ async function handleSendMessage(req, res) {
         }
         
         // Check if user is a participant in the forum
-        const isParticipant = await kv.sismember(`forum:${forumId}:participants`, userId);
+        const isParticipant = await redis.sismember(`forum:${forumId}:participants`, userId);
         if (!isParticipant) {
             return res.status(403).json({ error: 'You must join the forum to send messages' });
         }
         
         // Rate limiting: Check if user sent a message in the last 2 seconds
         const lastMessageKey = `user:${userId}:lastMessage`;
-        const lastMessageTime = await kv.get(lastMessageKey);
+        const lastMessageTime = await redis.get(lastMessageKey);
         const now = Date.now();
         
         if (lastMessageTime && (now - parseInt(lastMessageTime)) < 2000) {
@@ -144,26 +144,26 @@ async function handleSendMessage(req, res) {
         
         // Store message and update forum message list
         await Promise.all([
-            kv.set(`message:${messageId}`, message),
-            kv.lpush(`forum:${forumId}:messages`, messageId),
-            kv.set(lastMessageKey, now.toString(), { ex: 2 }) // 2 second expiry
+            redis.set(`message:${messageId}`, message),
+            redis.lpush(`forum:${forumId}:messages`, messageId),
+            redis.set(lastMessageKey, now.toString(), { ex: 2 }) // 2 second expiry
         ]);
         
         // Trim messages to last 200 (keep more for better UX)
-        await kv.ltrim(`forum:${forumId}:messages`, 0, 199);
+        await redis.ltrim(`forum:${forumId}:messages`, 0, 199);
         
         // Update user statistics
         const updatedUser = { ...user };
         updatedUser.messageCount = (updatedUser.messageCount || 0) + 1;
         updatedUser.lastActive = new Date().toISOString();
-        await kv.set(`user:${userId}`, updatedUser);
+        await redis.set(`user:${userId}`, updatedUser);
         
         // Update forum's last activity
         forum.lastActivity = new Date().toISOString();
-        await kv.set(`forum:${forumId}`, forum);
+        await redis.set(`forum:${forumId}`, forum);
         
         // Clear typing indicator for this user
-        await kv.del(`typing:${forumId}:${userId}`);
+        await redis.del(`typing:${forumId}:${userId}`);
         
         // Broadcast message to all connected clients
         await broadcastEvent({
@@ -196,20 +196,20 @@ async function handleTypingIndicator(req, res) {
     }
     
     try {
-        const user = await kv.get(`user:${userId}`);
+        const user = await redis.get(`user:${userId}`);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
         
         // Check if user is a participant
-        const isParticipant = await kv.sismember(`forum:${forumId}:participants`, userId);
+        const isParticipant = await redis.sismember(`forum:${forumId}:participants`, userId);
         if (!isParticipant) {
             return res.status(403).json({ error: 'You must join the forum first' });
         }
         
         if (req.method === 'POST') {
             // User started typing - set with 5 second expiry
-            await kv.setex(`typing:${forumId}:${userId}`, 5, user.displayName);
+            await redis.setex(`typing:${forumId}:${userId}`, 5, user.displayName);
             
             await broadcastEvent({
                 type: 'typing',
@@ -220,7 +220,7 @@ async function handleTypingIndicator(req, res) {
             });
         } else if (req.method === 'DELETE') {
             // User stopped typing
-            await kv.del(`typing:${forumId}:${userId}`);
+            await redis.del(`typing:${forumId}:${userId}`);
             
             await broadcastEvent({
                 type: 'typing',
@@ -241,7 +241,7 @@ async function handleTypingIndicator(req, res) {
 async function broadcastEvent(event) {
     try {
         // Get all active SSE connections
-        const connections = await kv.smembers('sse:connections') || [];
+        const connections = await redis.smembers('sse:connections') || [];
         
         if (connections.length === 0) {
             return; // No active connections
@@ -250,13 +250,13 @@ async function broadcastEvent(event) {
         // Queue event for each connection with error handling
         const promises = connections.map(async (connId) => {
             try {
-                await kv.lpush(`sse:queue:${connId}`, JSON.stringify(event));
+                await redis.lpush(`sse:queue:${connId}`, JSON.stringify(event));
                 // Set expiry on queue items (30 minutes)
-                await kv.expire(`sse:queue:${connId}`, 1800);
+                await redis.expire(`sse:queue:${connId}`, 1800);
             } catch (error) {
                 console.error(`Failed to queue event for connection ${connId}:`, error);
                 // Remove invalid connection
-                await kv.srem('sse:connections', connId);
+                await redis.srem('sse:connections', connId);
             }
         });
         
