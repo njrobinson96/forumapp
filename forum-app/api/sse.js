@@ -1,5 +1,5 @@
 // api/sse.js
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';  const redis = Redis.fromEnv();
 import { nanoid } from 'nanoid';
 
 export default async function handler(req, res) {
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     
     try {
         // Verify user exists
-        const user = await kv.get(`user:${userId}`);
+        const user = await redis.get(`user:${userId}`);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -28,8 +28,8 @@ export default async function handler(req, res) {
         
         // Register connection with metadata
         await Promise.all([
-            kv.sadd('sse:connections', connectionId),
-            kv.set(`sse:connection:${connectionId}`, {
+            redis.sadd('sse:connections', connectionId),
+            redis.set(`sse:connection:${connectionId}`, {
                 userId,
                 connectedAt: Date.now(),
                 lastHeartbeat: Date.now(),
@@ -39,8 +39,8 @@ export default async function handler(req, res) {
         
         // Update user's online status
         const updatedUser = { ...user, isOnline: true, lastActive: new Date().toISOString() };
-        await kv.set(`user:${userId}`, updatedUser);
-        await kv.sadd('activeUsers', userId);
+        await redis.set(`user:${userId}`, updatedUser);
+        await redis.sadd('activeUsers', userId);
         
         // Send initial connection event
         const initialEvent = {
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
                 res.write(`: heartbeat ${Date.now()}\n\n`);
                 
                 // Update connection heartbeat timestamp
-                await kv.hset(`sse:connection:${connectionId}`, 'lastHeartbeat', Date.now());
+                await redis.hset(`sse:connection:${connectionId}`, 'lastHeartbeat', Date.now());
             } catch (error) {
                 console.error('Heartbeat error:', error);
                 clearInterval(heartbeat);
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
         const messageCheck = setInterval(async () => {
             try {
                 // Get messages from queue
-                const messages = await kv.lrange(`sse:queue:${connectionId}`, 0, -1);
+                const messages = await redis.lrange(`sse:queue:${connectionId}`, 0, -1);
                 
                 if (messages && messages.length > 0) {
                     // Send each message
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
                     }
                     
                     // Clear processed messages
-                    await kv.del(`sse:queue:${connectionId}`);
+                    await redis.del(`sse:queue:${connectionId}`);
                 }
                 
                 // Also check for any typing indicators for forums user is in
@@ -141,17 +141,17 @@ export default async function handler(req, res) {
 async function sendTypingUpdates(res, userId, connectionId) {
     try {
         // Get forums user is participating in
-        const userForums = await kv.smembers(`user:${userId}:forums`) || [];
+        const userForums = await redis.smembers(`user:${userId}:forums`) || [];
         
         for (const forumId of userForums) {
             // Get all typing users in this forum
-            const typingKeys = await kv.keys(`typing:${forumId}:*`);
+            const typingKeys = await redis.keys(`typing:${forumId}:*`);
             const typingUsers = {};
             
             for (const key of typingKeys) {
                 const typingUserId = key.split(':')[2];
                 if (typingUserId !== userId) { // Don't send own typing status
-                    const userName = await kv.get(key);
+                    const userName = await redis.get(key);
                     if (userName) {
                         typingUsers[typingUserId] = userName;
                     }
@@ -179,17 +179,17 @@ async function cleanupConnection(connectionId, userId) {
     try {
         // Remove connection from active connections
         await Promise.all([
-            kv.srem('sse:connections', connectionId),
-            kv.del(`sse:connection:${connectionId}`),
-            kv.del(`sse:queue:${connectionId}`)
+            redis.srem('sse:connections', connectionId),
+            redis.del(`sse:connection:${connectionId}`),
+            redis.del(`sse:queue:${connectionId}`)
         ]);
         
         // Check if user has other active connections
-        const allConnections = await kv.smembers('sse:connections');
+        const allConnections = await redis.smembers('sse:connections');
         let hasOtherConnections = false;
         
         for (const connId of allConnections) {
-            const connData = await kv.get(`sse:connection:${connId}`);
+            const connData = await redis.get(`sse:connection:${connId}`);
             if (connData && connData.userId === userId) {
                 hasOtherConnections = true;
                 break;
@@ -198,13 +198,13 @@ async function cleanupConnection(connectionId, userId) {
         
         // If no other connections, mark user as offline
         if (!hasOtherConnections) {
-            const user = await kv.get(`user:${userId}`);
+            const user = await redis.get(`user:${userId}`);
             if (user) {
                 user.isOnline = false;
                 user.lastActive = new Date().toISOString();
-                await kv.set(`user:${userId}`, user);
+                await redis.set(`user:${userId}`, user);
             }
-            await kv.srem('activeUsers', userId);
+            await redis.srem('activeUsers', userId);
         }
         
         console.log(`Cleaned up connection ${connectionId} for user ${userId}`);
@@ -216,13 +216,13 @@ async function cleanupConnection(connectionId, userId) {
 // Utility function to broadcast to specific user
 export async function broadcastToUser(userId, event) {
     try {
-        const connections = await kv.smembers('sse:connections');
+        const connections = await redis.smembers('sse:connections');
         
         for (const connId of connections) {
-            const connData = await kv.get(`sse:connection:${connId}`);
+            const connData = await redis.get(`sse:connection:${connId}`);
             if (connData && connData.userId === userId) {
-                await kv.lpush(`sse:queue:${connId}`, JSON.stringify(event));
-                await kv.expire(`sse:queue:${connId}`, 1800); // 30 minutes
+                await redis.lpush(`sse:queue:${connId}`, JSON.stringify(event));
+                await redis.expire(`sse:queue:${connId}`, 1800); // 30 minutes
             }
         }
     } catch (error) {
