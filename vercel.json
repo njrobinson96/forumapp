@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/",
-     "destination": "/forum-app/index.html"
+"destination": "/index.html"
     },
     {
       "source": "/(.*)",
