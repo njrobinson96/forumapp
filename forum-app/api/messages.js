@@ -13,79 +13,178 @@ export default async function handler(req, res) {
     }
     
     try {
-        // Handle typing indicator
+        // Handle typing indicator endpoints
         if (req.url.includes('/typing')) {
-            return handleTypingIndicator(req, res);
+            return await handleTypingIndicator(req, res);
         }
         
         if (req.method === 'GET') {
-            // Get messages for a forum
-            const { forumId } = req.query;
-            
-            if (!forumId) {
-                return res.status(400).json({ error: 'Forum ID is required' });
-            }
-            
-            const messageIds = await kv.lrange(`forum:${forumId}:messages`, 0, -1);
-            const messages = [];
-            
-            for (const msgId of messageIds) {
-                const message = await kv.get(`message:${msgId}`);
-                if (message) {
-                    messages.push(message);
-                }
-            }
-            
-            return res.status(200).json(messages);
+            return await handleGetMessages(req, res);
         }
         
         if (req.method === 'POST') {
-            // Send a message
-            const { forumId, userId, text } = req.body;
-            
-            if (!forumId || !userId || !text) {
-                return res.status(400).json({ error: 'Forum ID, user ID, and text are required' });
-            }
-            
-            const user = await kv.get(`user:${userId}`);
-            if (!user) {
-                return res.status(404).json({ error: 'User not found' });
-            }
-            
-            const messageId = nanoid();
-            const message = {
-                id: messageId,
-                forumId,
-                userId,
-                userName: user.displayName,
-                text: text.substring(0, 500), // Limit message length
-                timestamp: new Date().toISOString()
-            };
-            
-            // Store message
-            await kv.set(`message:${messageId}`, message);
-            await kv.lpush(`forum:${forumId}:messages`, messageId);
-            
-            // Trim messages to last 100
-            await kv.ltrim(`forum:${forumId}:messages`, 0, 99);
-            
-            // Update user message count
-            await kv.hincrby(`user:${userId}`, 'messageCount', 1);
-            
-            // Broadcast message
-            await broadcastEvent({
-                type: 'message',
-                roomId: forumId,
-                message
-            });
-            
-            return res.status(200).json(message);
+            return await handleSendMessage(req, res);
         }
         
         return res.status(405).json({ error: 'Method not allowed' });
     } catch (error) {
         console.error('Messages error:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ 
+            error: 'Internal server error',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+async function handleGetMessages(req, res) {
+    const { forumId, limit = 50, offset = 0 } = req.query;
+    
+    if (!forumId) {
+        return res.status(400).json({ error: 'Forum ID is required' });
+    }
+    
+    try {
+        // Verify forum exists
+        const forum = await kv.get(`forum:${forumId}`);
+        if (!forum) {
+            return res.status(404).json({ error: 'Forum not found' });
+        }
+        
+        // Get message IDs with pagination
+        const messageIds = await kv.lrange(
+            `forum:${forumId}:messages`, 
+            parseInt(offset), 
+            parseInt(offset) + parseInt(limit) - 1
+        );
+        
+        const messages = [];
+        
+        // Fetch messages in parallel for better performance
+        const messagePromises = messageIds.map(msgId => kv.get(`message:${msgId}`));
+        const messageResults = await Promise.all(messagePromises);
+        
+        // Filter out null results and sort by timestamp
+        messageResults.forEach(message => {
+            if (message) {
+                messages.push(message);
+            }
+        });
+        
+        // Sort messages by timestamp (oldest first for chat display)
+        messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        return res.status(200).json({
+            messages,
+            hasMore: messageIds.length === parseInt(limit),
+            total: await kv.llen(`forum:${forumId}:messages`) || 0
+        });
+    } catch (error) {
+        console.error('Get messages error:', error);
+        return res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+}
+
+async function handleSendMessage(req, res) {
+    const { forumId, userId, text } = req.body;
+    
+    if (!forumId || !userId || !text) {
+        return res.status(400).json({ error: 'Forum ID, user ID, and text are required' });
+    }
+    
+    // Validate message length
+    const cleanText = text.trim();
+    if (cleanText.length === 0) {
+        return res.status(400).json({ error: 'Message cannot be empty' });
+    }
+    
+    if (cleanText.length > 1000) {
+        return res.status(400).json({ error: 'Message too long (max 1000 characters)' });
+    }
+    
+    try {
+        // Verify user and forum exist
+        const [user, forum] = await Promise.all([
+            kv.get(`user:${userId}`),
+            kv.get(`forum:${forumId}`)
+        ]);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        if (!forum) {
+            return res.status(404).json({ error: 'Forum not found' });
+        }
+        
+        // Check if user is a participant in the forum
+        const isParticipant = await kv.sismember(`forum:${forumId}:participants`, userId);
+        if (!isParticipant) {
+            return res.status(403).json({ error: 'You must join the forum to send messages' });
+        }
+        
+        // Rate limiting: Check if user sent a message in the last 2 seconds
+        const lastMessageKey = `user:${userId}:lastMessage`;
+        const lastMessageTime = await kv.get(lastMessageKey);
+        const now = Date.now();
+        
+        if (lastMessageTime && (now - parseInt(lastMessageTime)) < 2000) {
+            return res.status(429).json({ error: 'Please wait before sending another message' });
+        }
+        
+        const messageId = nanoid();
+        const message = {
+            id: messageId,
+            forumId,
+            userId,
+            userName: user.displayName,
+            text: cleanText,
+            timestamp: new Date().toISOString(),
+            edited: false
+        };
+        
+        // Store message and update forum message list
+        await Promise.all([
+            kv.set(`message:${messageId}`, message),
+            kv.lpush(`forum:${forumId}:messages`, messageId),
+            kv.set(lastMessageKey, now.toString(), { ex: 2 }) // 2 second expiry
+        ]);
+        
+        // Trim messages to last 200 (keep more for better UX)
+        await kv.ltrim(`forum:${forumId}:messages`, 0, 199);
+        
+        // Update user statistics
+        const updatedUser = { ...user };
+        updatedUser.messageCount = (updatedUser.messageCount || 0) + 1;
+        updatedUser.lastActive = new Date().toISOString();
+        await kv.set(`user:${userId}`, updatedUser);
+        
+        // Update forum's last activity
+        forum.lastActivity = new Date().toISOString();
+        await kv.set(`forum:${forumId}`, forum);
+        
+        // Clear typing indicator for this user
+        await kv.del(`typing:${forumId}:${userId}`);
+        
+        // Broadcast message to all connected clients
+        await broadcastEvent({
+            type: 'message',
+            roomId: forumId,
+            message
+        });
+        
+        // Also broadcast typing stopped
+        await broadcastEvent({
+            type: 'typing',
+            roomId: forumId,
+            userId,
+            userName: user.displayName,
+            isTyping: false
+        });
+        
+        return res.status(201).json(message);
+    } catch (error) {
+        console.error('Send message error:', error);
+        return res.status(500).json({ error: 'Failed to send message' });
     }
 }
 
@@ -96,42 +195,73 @@ async function handleTypingIndicator(req, res) {
         return res.status(400).json({ error: 'Forum ID and user ID are required' });
     }
     
-    const user = await kv.get(`user:${userId}`);
-    if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-    }
-    
-    if (req.method === 'POST') {
-        // User started typing
-        await kv.setex(`typing:${forumId}:${userId}`, 3, user.displayName);
+    try {
+        const user = await kv.get(`user:${userId}`);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
         
-        await broadcastEvent({
-            type: 'typing',
-            roomId: forumId,
-            userId,
-            userName: user.displayName,
-            isTyping: true
-        });
-    } else if (req.method === 'DELETE') {
-        // User stopped typing
-        await kv.del(`typing:${forumId}:${userId}`);
+        // Check if user is a participant
+        const isParticipant = await kv.sismember(`forum:${forumId}:participants`, userId);
+        if (!isParticipant) {
+            return res.status(403).json({ error: 'You must join the forum first' });
+        }
         
-        await broadcastEvent({
-            type: 'typing',
-            roomId: forumId,
-            userId,
-            userName: user.displayName,
-            isTyping: false
-        });
+        if (req.method === 'POST') {
+            // User started typing - set with 5 second expiry
+            await kv.setex(`typing:${forumId}:${userId}`, 5, user.displayName);
+            
+            await broadcastEvent({
+                type: 'typing',
+                roomId: forumId,
+                userId,
+                userName: user.displayName,
+                isTyping: true
+            });
+        } else if (req.method === 'DELETE') {
+            // User stopped typing
+            await kv.del(`typing:${forumId}:${userId}`);
+            
+            await broadcastEvent({
+                type: 'typing',
+                roomId: forumId,
+                userId,
+                userName: user.displayName,
+                isTyping: false
+            });
+        }
+        
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Typing indicator error:', error);
+        return res.status(500).json({ error: 'Failed to handle typing indicator' });
     }
-    
-    return res.status(200).json({ success: true });
 }
 
 async function broadcastEvent(event) {
-    const connections = await kv.smembers('sse:connections');
-    
-    for (const connId of connections) {
-        await kv.lpush(`sse:queue:${connId}`, JSON.stringify(event));
+    try {
+        // Get all active SSE connections
+        const connections = await kv.smembers('sse:connections') || [];
+        
+        if (connections.length === 0) {
+            return; // No active connections
+        }
+        
+        // Queue event for each connection with error handling
+        const promises = connections.map(async (connId) => {
+            try {
+                await kv.lpush(`sse:queue:${connId}`, JSON.stringify(event));
+                // Set expiry on queue items (30 minutes)
+                await kv.expire(`sse:queue:${connId}`, 1800);
+            } catch (error) {
+                console.error(`Failed to queue event for connection ${connId}:`, error);
+                // Remove invalid connection
+                await kv.srem('sse:connections', connId);
+            }
+        });
+        
+        await Promise.allSettled(promises);
+    } catch (error) {
+        console.error('Broadcast error:', error);
     }
 }
