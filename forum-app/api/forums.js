@@ -1,5 +1,5 @@
 // api/forums.js
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';  const redis = Redis.fromEnv();
 import { nanoid } from 'nanoid';
 
 export default async function handler(req, res) {
@@ -51,15 +51,15 @@ export default async function handler(req, res) {
 async function handleGetForums(req, res) {
     try {
         // Get all forum IDs
-        const forumIds = await kv.smembers('forums') || [];
+        const forumIds = await redis.smembers('forums') || [];
         const forums = [];
         
         // Fetch each forum with participant count
         for (const forumId of forumIds) {
-            const forum = await kv.get(`forum:${forumId}`);
+            const forum = await redis.get(`forum:${forumId}`);
             if (forum) {
                 // Get current participant count
-                const participants = await kv.scard(`forum:${forumId}:participants`) || 0;
+                const participants = await redis.scard(`forum:${forumId}:participants`) || 0;
                 forums.push({ 
                     ...forum, 
                     participants,
@@ -95,7 +95,7 @@ async function handleCreateForum(req, res) {
     }
     
     // Verify user exists
-    const user = await kv.get(`user:${hostId}`);
+    const user = await redis.get(`user:${hostId}`);
     if (!user) {
         return res.status(404).json({ error: 'User not found' });
     }
@@ -113,8 +113,8 @@ async function handleCreateForum(req, res) {
     };
     
     // Store forum
-    await kv.set(`forum:${forumId}`, forum);
-    await kv.sadd('forums', forumId);
+    await redis.set(`forum:${forumId}`, forum);
+    await redis.sadd('forums', forumId);
     
     // Update user's created forums count
     if (user.forumsCreated) {
@@ -122,7 +122,7 @@ async function handleCreateForum(req, res) {
     } else {
         user.forumsCreated = 1;
     }
-    await kv.set(`user:${hostId}`, user);
+    await redis.set(`user:${hostId}`, user);
     
     // Broadcast forum creation to all connected users
     await broadcastEvent({
@@ -142,8 +142,8 @@ async function handleJoinForum(req, res, forumId) {
     
     // Verify forum and user exist
     const [forum, user] = await Promise.all([
-        kv.get(`forum:${forumId}`),
-        kv.get(`user:${userId}`)
+        redis.get(`forum:${forumId}`),
+        redis.get(`user:${userId}`)
     ]);
     
     if (!forum) {
@@ -155,26 +155,26 @@ async function handleJoinForum(req, res, forumId) {
     }
     
     // Check if user is already in the forum
-    const isAlreadyParticipant = await kv.sismember(`forum:${forumId}:participants`, userId);
+    const isAlreadyParticipant = await redis.sismember(`forum:${forumId}:participants`, userId);
     
     if (!isAlreadyParticipant) {
         // Add user to forum participants
-        await kv.sadd(`forum:${forumId}:participants`, userId);
-        await kv.sadd(`user:${userId}:forums`, forumId);
+        await redis.sadd(`forum:${forumId}:participants`, userId);
+        await redis.sadd(`user:${userId}:forums`, forumId);
         
         // Update user's discussions joined
         if (!user.discussionsJoined.includes(forumId)) {
             user.discussionsJoined.push(forumId);
-            await kv.set(`user:${userId}`, user);
+            await redis.set(`user:${userId}`, user);
         }
     }
     
     // Get updated participant count
-    const participants = await kv.scard(`forum:${forumId}:participants`) || 0;
+    const participants = await redis.scard(`forum:${forumId}:participants`) || 0;
     
     // Update forum's last activity
     forum.lastActivity = new Date().toISOString();
-    await kv.set(`forum:${forumId}`, forum);
+    await redis.set(`forum:${forumId}`, forum);
     
     // Broadcast user joined event
     if (!isAlreadyParticipant) {
@@ -197,17 +197,17 @@ async function handleLeaveForum(req, res, forumId) {
         return res.status(400).json({ error: 'User ID is required' });
     }
     
-    const user = await kv.get(`user:${userId}`);
+    const user = await redis.get(`user:${userId}`);
     if (!user) {
         return res.status(404).json({ error: 'User not found' });
     }
     
     // Remove user from forum participants
-    await kv.srem(`forum:${forumId}:participants`, userId);
-    await kv.srem(`user:${userId}:forums`, forumId);
+    await redis.srem(`forum:${forumId}:participants`, userId);
+    await redis.srem(`user:${userId}:forums`, forumId);
     
     // Get updated participant count
-    const participants = await kv.scard(`forum:${forumId}:participants`) || 0;
+    const participants = await redis.scard(`forum:${forumId}:participants`) || 0;
     
     // Broadcast user left event
     await broadcastEvent({
@@ -224,14 +224,14 @@ async function handleLeaveForum(req, res, forumId) {
 async function broadcastEvent(event) {
     try {
         // Get all active SSE connections
-        const connections = await kv.smembers('sse:connections') || [];
+        const connections = await redis.smembers('sse:connections') || [];
         
         // Queue event for each connection
         const promises = connections.map(async (connId) => {
             try {
-                await kv.lpush(`sse:queue:${connId}`, JSON.stringify(event));
+                await redis.lpush(`sse:queue:${connId}`, JSON.stringify(event));
                 // Set expiry on queue items (1 hour)
-                await kv.expire(`sse:queue:${connId}`, 3600);
+                await redis.expire(`sse:queue:${connId}`, 3600);
             } catch (error) {
                 console.error(`Failed to queue event for connection ${connId}:`, error);
             }
