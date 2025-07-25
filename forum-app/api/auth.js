@@ -1,5 +1,5 @@
 // api/auth.js
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';  const redis = Redis.fromEnv();
 import { nanoid } from 'nanoid';
 
 export default async function handler(req, res) {
@@ -22,9 +22,9 @@ export default async function handler(req, res) {
             }
             
             // Check for duplicate display names
-            const existingUsers = await kv.smembers('users');
+            const existingUsers = await redis.smembers('users');
             for (const existingUserId of existingUsers) {
-                const existingUser = await kv.get(`user:${existingUserId}`);
+                const existingUser = await redis.get(`user:${existingUserId}`);
                 if (existingUser && existingUser.displayName.toLowerCase() === displayName.toLowerCase()) {
                     return res.status(409).json({ error: 'Display name already taken' });
                 }
@@ -44,12 +44,12 @@ export default async function handler(req, res) {
             };
             
             // Store user in KV
-            await kv.set(`user:${userId}`, user);
-            await kv.sadd('users', userId);
-            await kv.sadd('activeUsers', userId);
+            await redis.set(`user:${userId}`, user);
+            await redis.sadd('users', userId);
+            await redis.sadd('activeUsers', userId);
             
             // Set user session expiry (24 hours)
-            await kv.expire(`user:${userId}`, 86400);
+            await redis.expire(`user:${userId}`, 86400);
             
             return res.status(200).json(user);
         }
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'User ID is required' });
             }
             
-            const user = await kv.get(`user:${userId}`);
+            const user = await redis.get(`user:${userId}`);
             
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
@@ -71,8 +71,8 @@ export default async function handler(req, res) {
             // Update last active timestamp
             user.lastActive = new Date().toISOString();
             user.isOnline = true;
-            await kv.set(`user:${userId}`, user);
-            await kv.sadd('activeUsers', userId);
+            await redis.set(`user:${userId}`, user);
+            await redis.sadd('activeUsers', userId);
             
             return res.status(200).json(user);
         }
@@ -86,15 +86,15 @@ export default async function handler(req, res) {
             }
             
             // Update user status to offline
-            const user = await kv.get(`user:${userId}`);
+            const user = await redis.get(`user:${userId}`);
             if (user) {
                 user.isOnline = false;
                 user.lastActive = new Date().toISOString();
-                await kv.set(`user:${userId}`, user);
+                await redis.set(`user:${userId}`, user);
             }
             
             // Remove from active users
-            await kv.srem('activeUsers', userId);
+            await redis.srem('activeUsers', userId);
             
             return res.status(200).json({ success: true });
         }
