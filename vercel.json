@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/forumapp/index.html"
+      "destination": "/index.html"
     }
   ]
 }
