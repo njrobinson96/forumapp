@@ -1,12 +1,13 @@
 {
+  "version": 2,
   "rewrites": [
     {
       "source": "/",
-      "destination": "/forum-app/index.html"
+      "destination": "/index.html"
     },
     {
-      "source": "/((?!forum-app).*)",
-      "destination": "/forum-app/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     }
   ]
 }
