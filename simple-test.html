@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple API Test</title>
+</head>
+<body>
+    <h1>Simple API Test</h1>
+    <div id="result">Testing...</div>
+    
+    <script>
+        async function test() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<h2>Testing APIs...</h2>';
+            
+            // Test ping endpoint (no dependencies)
+            try {
+                console.log('Testing /api/ping...');
+                const pingResponse = await fetch('/api/ping');
+                console.log('Ping Status:', pingResponse.status);
+                console.log('Ping URL:', pingResponse.url);
+                
+                const pingText = await pingResponse.text();
+                console.log('Ping Response:', pingText);
+                
+                resultDiv.innerHTML += `
+                    <h3>Ping API - Status: ${pingResponse.status}</h3>
+                    <h3>URL: ${pingResponse.url}</h3>
+                    <pre>${pingText}</pre>
+                `;
+            } catch (error) {
+                console.error('Ping Error:', error);
+                resultDiv.innerHTML += `<h3>Ping Error: ${error.message}</h3>`;
+            }
+            
+            // Test test endpoint
+            try {
+                console.log('Testing /api/test...');
+                const testResponse = await fetch('/api/test');
+                console.log('Test Status:', testResponse.status);
+                console.log('Test URL:', testResponse.url);
+                
+                const testText = await testResponse.text();
+                console.log('Test Response:', testText);
+                
+                resultDiv.innerHTML += `
+                    <h3>Test API - Status: ${testResponse.status}</h3>
+                    <h3>URL: ${testResponse.url}</h3>
+                    <pre>${testText}</pre>
+                `;
+            } catch (error) {
+                console.error('Test Error:', error);
+                resultDiv.innerHTML += `<h3>Test Error: ${error.message}</h3>`;
+            }
+        }
+        
+        test();
+    </script>
+</body>
+</html> 
