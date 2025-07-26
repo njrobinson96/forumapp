@@ -1,4 +1,18 @@
 /* script.js - Upgraded v2.0 */
+
+// Utility functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // App State with enhanced features
 const appState = {
     currentUser: null,
@@ -50,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeOfflineSupport();
     loadUserSession();
     
+    // Test API connectivity
+    testAPIConnectivity();
+    
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
             .then(registration => {
@@ -63,6 +80,27 @@ document.addEventListener('DOMContentLoaded', () => {
     performance.mark('app-init-end');
     performance.measure('app-initialization', 'app-init-start', 'app-init-end');
 });
+
+// Test API connectivity
+async function testAPIConnectivity() {
+    try {
+        console.log('Testing API connectivity...');
+        const response = await fetch('/api/auth', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        console.log('API test response status:', response.status);
+        console.log('API test response URL:', response.url);
+        
+        if (response.ok) {
+            console.log('✅ API is accessible');
+        } else {
+            console.error('❌ API returned error status:', response.status);
+        }
+    } catch (error) {
+        console.error('❌ API connectivity test failed:', error);
+    }
+}
 
 // Enhanced Event Listeners with performance tracking
 function initializeEventListeners() {
@@ -404,15 +442,40 @@ async function handleJoin(e) {
         
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
+        console.log('Response URL:', response.url);
         
         if (!response.ok) {
-            const errorData = await response.json();
+            console.error('Response not ok, status:', response.status);
+            
+            // Try to get the response text first
+            const responseText = await response.text();
+            console.error('Response text:', responseText);
+            
+            let errorData;
+            try {
+                errorData = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse response as JSON:', parseError);
+                errorData = { error: `Server error (${response.status}): ${responseText.substring(0, 100)}...` };
+            }
+            
             console.error('Server error:', errorData);
             alert(`Sign-in failed: ${errorData.error || 'Unknown error'}`);
             return;
         }
         
-        const user = await response.json();
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+        
+        let user;
+        try {
+            user = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('Failed to parse user data as JSON:', parseError);
+            alert('Sign-in failed: Invalid response from server');
+            return;
+        }
+        
         console.log('User created successfully:', user);
         
         appState.currentUser = user;

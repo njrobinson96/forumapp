@@ -18,6 +18,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "manifest.json",
+      "use": "@vercel/static"
+    },
+    {
       "src": "public/**",
       "use": "@vercel/static"
     },
@@ -30,10 +34,6 @@
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/public/manifest.json"
     },
     {
       "src": "/style.css",
@@ -51,5 +51,10 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30
+    }
+  }
 } 

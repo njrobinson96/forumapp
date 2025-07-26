@@ -1,0 +1,118 @@
+{
+  "name": "Forum - Live Discussion Spaces",
+  "short_name": "Forum",
+  "description": "Join meaningful conversations in real-time discussion forums. Connect with communities around topics you love.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f17",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["social", "lifestyle", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=72&h=72&style=professional",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=96&h=96&style=professional",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=128&h=128&style=professional",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=144&h=144&style=professional",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=152&h=152&style=professional",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=192&h=192&style=professional",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=384&h=384&style=professional",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=512&h=512&style=professional",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum app icon purple gradient minimalist&w=512&h=512&style=professional",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Discussion",
+      "short_name": "New Forum",
+      "description": "Create a new discussion forum",
+      "url": "/?action=create",
+      "icons": [
+        {
+          "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=plus icon purple gradient&w=96&h=96&style=professional",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Trending Forums",
+      "short_name": "Trending",
+      "description": "View trending discussions",
+      "url": "/?filter=trending",
+      "icons": [
+        {
+          "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=fire icon purple gradient&w=96&h=96&style=professional",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=forum app screenshot discussions list purple theme&w=360&h=640&style=professional",
+      "sizes": "360x640",
+      "type": "image/png",
+      "label": "Discussions List"
+    },
+    {
+      "src": "https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=forum app screenshot chat room purple theme&w=360&h=640&style=professional",
+      "sizes": "360x640",
+      "type": "image/png",
+      "label": "Live Chat Room"
+    }
+  ],
+  "related_applications": [],
+  "iarc_rating_id": "",
+  "edge_side_panel": {
+    "preferred_width": 360
+  }
+} 

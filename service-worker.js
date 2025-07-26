@@ -4,7 +4,7 @@ const urlsToCache = [
     '/',
     'style.css',
     'script.js',
-    '/manifest.json',
+    'manifest.json',
     'https://cdn.tailwindcss.com',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
 ];
