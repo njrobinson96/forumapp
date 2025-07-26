@@ -5,15 +5,14 @@
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev",
+    "build": "echo 'Static site - no build required'",
     "deploy": "vercel --prod",
     "test": "echo 'No tests specified'",
     "lint": "echo 'No linter configured'"
   },
   "dependencies": {
     "@upstash/redis": "^1.25.0",
-    "nanoid": "^3.3.7",
-    "compression": "^1.7.4",
-    "helmet": "^7.1.0"
+    "nanoid": "^3.3.7"
   },
   "devDependencies": {
     "vercel": "^32.5.0"
