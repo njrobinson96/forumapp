@@ -36,6 +36,18 @@
       "dest": "/public/manifest.json"
     },
     {
+      "src": "/style.css",
+      "dest": "/style.css"
+    },
+    {
+      "src": "/script.js",
+      "dest": "/script.js"
+    },
+    {
+      "src": "/service-worker.js",
+      "dest": "/service-worker.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }

@@ -67,10 +67,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // Enhanced Event Listeners with performance tracking
 function initializeEventListeners() {
     try {
+        console.log('Initializing event listeners...');
+        
         // Join Form
         const joinForm = document.getElementById('joinForm');
+        console.log('Join form found:', joinForm);
+        
         if (joinForm) {
             joinForm.addEventListener('submit', handleJoin);
+            console.log('Submit event listener attached to join form');
+        } else {
+            console.error('Join form not found!');
         }
         
         // Navigation with enhanced accessibility
@@ -157,6 +164,7 @@ function initializeEventListeners() {
         // Page visibility API
         document.addEventListener('visibilitychange', handleVisibilityChange);
         
+        console.log('Event listeners initialized successfully');
     } catch (error) {
         console.error('Error initializing event listeners:', error);
     }
@@ -355,24 +363,43 @@ function handleServerEvent(data) {
 
 // User Authentication
 async function handleJoin(e) {
+    console.log('handleJoin called', e);
     e.preventDefault();
-    const displayName = document.getElementById('displayName').value.trim();
-    const aboutMe = document.getElementById('aboutMe').value.trim();
     
-    if (!displayName) return;
+    const displayName = document.getElementById('displayName');
+    const aboutMe = document.getElementById('aboutMe');
+    
+    console.log('Form elements found:', { displayName, aboutMe });
+    
+    if (!displayName || !aboutMe) {
+        console.error('Form elements not found');
+        return;
+    }
+    
+    const displayNameValue = displayName.value.trim();
+    const aboutMeValue = aboutMe.value.trim();
+    
+    console.log('Form values:', { displayNameValue, aboutMeValue });
+    
+    if (!displayNameValue) {
+        console.log('Display name is empty');
+        return;
+    }
     
     const interests = [];
     document.querySelectorAll('.interest-tag input:checked').forEach(input => {
         interests.push(input.value);
     });
     
+    console.log('Selected interests:', interests);
+    
     try {
-        console.log('Attempting to join with:', { displayName, aboutMe, interests });
+        console.log('Attempting to join with:', { displayNameValue, aboutMeValue, interests });
         
         const response = await fetch('/api/auth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ displayName, aboutMe, interests })
+            body: JSON.stringify({ displayName: displayNameValue, aboutMe: aboutMeValue, interests })
         });
         
         console.log('Response status:', response.status);
