@@ -85,17 +85,36 @@ document.addEventListener('DOMContentLoaded', () => {
 async function testAPIConnectivity() {
     try {
         console.log('Testing API connectivity...');
+        
+        // Test the simple test endpoint first
+        console.log('Testing /api/test...');
+        const testResponse = await fetch('/api/test', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        console.log('Test API response status:', testResponse.status);
+        console.log('Test API response URL:', testResponse.url);
+        
+        if (testResponse.ok) {
+            const testData = await testResponse.json();
+            console.log('✅ Test API is working:', testData);
+        } else {
+            console.error('❌ Test API returned error status:', testResponse.status);
+        }
+        
+        // Test the auth endpoint
+        console.log('Testing /api/auth...');
         const response = await fetch('/api/auth', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
-        console.log('API test response status:', response.status);
-        console.log('API test response URL:', response.url);
+        console.log('Auth API response status:', response.status);
+        console.log('Auth API response URL:', response.url);
         
         if (response.ok) {
-            console.log('✅ API is accessible');
+            console.log('✅ Auth API is accessible');
         } else {
-            console.error('❌ API returned error status:', response.status);
+            console.error('❌ Auth API returned error status:', response.status);
         }
     } catch (error) {
         console.error('❌ API connectivity test failed:', error);
@@ -185,7 +204,12 @@ function initializeEventListeners() {
         // Search input in discover screen
         const searchInput = document.querySelector('#discoverScreen input[type="search"]');
         if (searchInput) {
-            searchInput.addEventListener('input', debounce(handleSearch, 300));
+            if (typeof debounce === 'function') {
+                searchInput.addEventListener('input', debounce(handleSearch, 300));
+            } else {
+                console.warn('Debounce function not available, using direct event listener');
+                searchInput.addEventListener('input', handleSearch);
+            }
         }
         
         // Modal close on escape
