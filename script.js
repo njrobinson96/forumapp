@@ -467,13 +467,17 @@ async function handleJoin(e) {
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
         console.log('Response URL:', response.url);
+        console.log('Response type:', response.type);
+        console.log('Response redirected:', response.redirected);
+        
+        // Get the raw response text first
+        const responseText = await response.text();
+        console.log('Raw response text (first 200 chars):', responseText.substring(0, 200));
+        console.log('Response text length:', responseText.length);
         
         if (!response.ok) {
             console.error('Response not ok, status:', response.status);
-            
-            // Try to get the response text first
-            const responseText = await response.text();
-            console.error('Response text:', responseText);
+            console.error('Full response text:', responseText);
             
             let errorData;
             try {
@@ -488,7 +492,6 @@ async function handleJoin(e) {
             return;
         }
         
-        const responseText = await response.text();
         console.log('Response text:', responseText);
         
         let user;
@@ -496,6 +499,7 @@ async function handleJoin(e) {
             user = JSON.parse(responseText);
         } catch (parseError) {
             console.error('Failed to parse user data as JSON:', parseError);
+            console.error('Response that failed to parse:', responseText);
             alert('Sign-in failed: Invalid response from server');
             return;
         }

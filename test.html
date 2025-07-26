@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Test the simple test endpoint
+                console.log('Testing /api/test...');
+                const testResponse = await fetch('/api/test');
+                console.log('Test response status:', testResponse.status);
+                
+                if (testResponse.ok) {
+                    const testData = await testResponse.text();
+                    console.log('Test response:', testData);
+                    resultDiv.innerHTML = `<h3>Test API Response:</h3><pre>${testData}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `<h3>Test API Error:</h3><p>Status: ${testResponse.status}</p>`;
+                }
+                
+                // Test the auth endpoint
+                console.log('Testing /api/auth...');
+                const authResponse = await fetch('/api/auth', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log('Auth response status:', authResponse.status);
+                
+                const authText = await authResponse.text();
+                console.log('Auth response:', authText);
+                
+                resultDiv.innerHTML += `<h3>Auth API Response:</h3><pre>${authText}</pre>`;
+                
+            } catch (error) {
+                console.error('Test failed:', error);
+                resultDiv.innerHTML = `<h3>Error:</h3><p>${error.message}</p>`;
+            }
+        }
+        
+        // Auto-test on page load
+        window.onload = testAPI;
+    </script>
+</body>
+</html> 
