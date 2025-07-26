@@ -8,12 +8,17 @@ module.exports = async function handler(req, res) {
         return res.status(200).end();
     }
     
-    console.log('Test API called:', req.method, req.url);
+    console.log('Debug API called:', req.method, req.url);
+    console.log('Request headers:', req.headers);
+    console.log('Request body:', req.body);
     
     return res.status(200).json({
-        message: 'API is working!',
+        message: 'Debug API is working!',
         method: req.method,
         url: req.url,
-        timestamp: new Date().toISOString()
+        headers: req.headers,
+        body: req.body,
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'production'
     });
 } 

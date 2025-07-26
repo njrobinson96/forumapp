@@ -1,9 +1,9 @@
-// api/messages.js
-import { Redis } from '@upstash/redis';
+// api/messages.js - Upgraded v2.0
+const { Redis } = require('@upstash/redis');
 const redis = Redis.fromEnv();
-import { nanoid } from 'nanoid';
+const { nanoid } = require('nanoid');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

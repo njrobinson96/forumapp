@@ -1,13 +1,13 @@
 // api/auth.js - Upgraded v2.0
-import { Redis } from '@upstash/redis';
+const { Redis } = require('@upstash/redis');
 const redis = Redis.fromEnv();
-import { nanoid } from 'nanoid';
+const { nanoid } = require('nanoid');
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 10;
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // Enhanced CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
