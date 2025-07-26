@@ -1,11 +1,10 @@
 {
   "name": "forum-app",
   "version": "2.0.0",
-  "description": "Real-time forum discussion app with advanced features",
+  "description": "Real-time forum discussion app with advanced features - Static site with serverless API",
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'No build step required'",
     "deploy": "vercel --prod",
     "test": "echo 'No tests specified'",
     "lint": "echo 'No linter configured'"
@@ -28,7 +27,9 @@
     "chat",
     "discussion",
     "pwa",
-    "vercel"
+    "vercel",
+    "static-site",
+    "serverless"
   ],
   "author": "Forum App Team",
   "license": "MIT"
