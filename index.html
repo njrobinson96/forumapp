@@ -1,4 +1,4 @@
-<!-- index.html (Updated) -->
+<!-- index.html (Upgraded v2.0) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,84 +7,131 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#8b5cf6">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Join meaningful conversations in real-time discussion forums. Connect with communities around topics you love.">
+    <meta name="keywords" content="forum, discussion, chat, real-time, community, social">
+    <meta name="author" content="Forum App Team">
+    
+    <!-- Open Graph -->
     <meta property="og:title" content="Forum - Live Discussion Spaces">
     <meta property="og:description" content="Join meaningful conversations in real-time discussion forums. Connect with communities around topics you love.">
     <meta property="og:image" content="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum discussion app icon purple gradient&w=512&h=512&style=professional">
     <meta property="og:type" content="website">
-    <title>Forum - Live Discussion Spaces</title>
-    <link rel="icon" type="image/png" href="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=minimalist forum icon purple gradient&w=64&h=64&style=professional">
-    <link rel="manifest" href="/public/manifest.json">
+    <meta property="og:url" content="https://your-forum-app.vercel.app">
+    <meta property="og:site_name" content="Forum">
     
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Forum - Live Discussion Spaces">
+    <meta name="twitter:description" content="Join meaningful conversations in real-time discussion forums.">
+    <meta name="twitter:image" content="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=modern forum discussion app icon purple gradient&w=512&h=512&style=professional">
+    
+    <title>Forum - Live Discussion Spaces</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=minimalist forum icon purple gradient&w=32&h=32&style=professional">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=minimalist forum icon purple gradient&w=16&h=16&style=professional">
+    <link rel="apple-touch-icon" href="https://cdn.simulationtheory.ai/gasset/?asset=img&prompt=minimalist forum icon purple gradient&w=180&h=180&style=professional">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style">
+    <link rel="preload" href="/style.css" as="style">
+    
+    <!-- External CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Forum - Live Discussion Spaces",
+        "description": "Real-time forum discussion app",
+        "url": "https://your-forum-app.vercel.app",
+        "applicationCategory": "SocialNetworkingApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
 </head>
-<body class="min-h-screen overflow-hidden">
+<body class="min-h-screen overflow-hidden" role="application" aria-label="Forum Discussion App">
     <!-- Main Container -->
     <div id="app" class="h-screen flex flex-col">
         <!-- Top Header (Hidden initially) -->
-        <header id="mainHeader" class="glass-morphism px-4 py-3 flex items-center justify-between relative z-10 hidden">
+        <header id="mainHeader" class="glass-morphism px-4 py-3 flex items-center justify-between relative z-10 hidden" role="banner">
             <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-amber-500 rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-amber-500 rounded-lg flex items-center justify-center" aria-hidden="true">
                     <i class="fas fa-comments text-white text-sm"></i>
                 </div>
                 <h1 class="text-xl font-bold gradient-text">Forum</h1>
             </div>
             <div class="flex items-center space-x-4">
-                <button id="searchBtn" class="text-xl text-gray-400 hover:text-white transition">
+                <button id="searchBtn" class="text-xl text-gray-400 hover:text-white transition" aria-label="Search forums" title="Search">
                     <i class="fas fa-search"></i>
                 </button>
-                <button id="notificationBtn" class="text-xl text-gray-400 hover:text-white transition relative">
+                <button id="notificationBtn" class="text-xl text-gray-400 hover:text-white transition relative" aria-label="Notifications" title="Notifications">
                     <i class="far fa-bell"></i>
-                    <span class="absolute -top-1 -right-1 bg-amber-500 rounded-full w-2 h-2 pulse-badge hidden" id="notificationDot"></span>
+                    <span class="absolute -top-1 -right-1 bg-amber-500 rounded-full w-2 h-2 pulse-badge hidden" id="notificationDot" aria-label="New notifications"></span>
                 </button>
             </div>
         </header>
 
         <!-- Main Content Area -->
-        <main id="mainContent" class="flex-1 overflow-y-auto">
+        <main id="mainContent" class="flex-1 overflow-y-auto" role="main">
             <!-- Welcome Screen -->
             <div id="welcomeScreen" class="h-full flex flex-col items-center justify-center p-6">
                 <div class="max-w-sm w-full space-y-6">
                     <div class="text-center">
-                        <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-amber-500 rounded-3xl mx-auto mb-6 flex items-center justify-center">
+                        <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-amber-500 rounded-3xl mx-auto mb-6 flex items-center justify-center" aria-hidden="true">
                             <i class="fas fa-comments text-4xl text-white"></i>
                         </div>
                         <h2 class="text-3xl font-bold mb-2">Welcome to Forum</h2>
                         <p class="text-gray-400">Where conversations come alive</p>
                     </div>
                     
-                    <form id="joinForm" class="space-y-4">
+                    <form id="joinForm" class="space-y-4" role="form" aria-label="Join forum form">
                         <input type="text" id="displayName" placeholder="Your display name" required
-                            class="w-full px-4 py-3 rounded-xl focus:outline-none transition glass-morphism">
+                            class="w-full px-4 py-3 rounded-xl focus:outline-none transition glass-morphism"
+                            aria-label="Display name" maxlength="50">
                         <textarea id="aboutMe" placeholder="What are you interested in?" rows="3"
-                            class="w-full px-4 py-3 rounded-xl focus:outline-none transition resize-none glass-morphism"></textarea>
+                            class="w-full px-4 py-3 rounded-xl focus:outline-none transition resize-none glass-morphism"
+                            aria-label="About me" maxlength="200"></textarea>
                         
-                        <div class="space-y-2">
-                            <p class="text-sm text-gray-400">Select your interests:</p>
-                            <div class="flex flex-wrap gap-2">
+                        <fieldset class="space-y-2">
+                            <legend class="text-sm text-gray-400">Select your interests:</legend>
+                            <div class="flex flex-wrap gap-2" role="group" aria-label="Interest selection">
                                 <label class="interest-tag">
-                                    <input type="checkbox" class="hidden" value="technology">
+                                    <input type="checkbox" class="hidden" value="technology" aria-label="Technology">
                                     <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Technology</span>
                                 </label>
                                 <label class="interest-tag">
-                                    <input type="checkbox" class="hidden" value="art">
+                                    <input type="checkbox" class="hidden" value="art" aria-label="Art & Design">
                                     <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Art & Design</span>
                                 </label>
                                 <label class="interest-tag">
-                                    <input type="checkbox" class="hidden" value="music">
+                                    <input type="checkbox" class="hidden" value="music" aria-label="Music">
                                     <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Music</span>
                                 </label>
                                 <label class="interest-tag">
-                                    <input type="checkbox" class="hidden" value="gaming">
+                                    <input type="checkbox" class="hidden" value="gaming" aria-label="Gaming">
                                     <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Gaming</span>
                                 </label>
                                 <label class="interest-tag">
-                                    <input type="checkbox" class="hidden" value="philosophy">
+                                    <input type="checkbox" class="hidden" value="philosophy" aria-label="Philosophy">
                                     <span class="px-3 py-1 rounded-full text-sm cursor-pointer transition bg-gray-800 hover:bg-purple-600">Philosophy</span>
                                 </label>
                             </div>
-                        </div>
+                        </fieldset>
                         
                         <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-purple-800 transition floating-button">
                             Enter Forum
@@ -98,33 +145,33 @@
                 <div class="sticky top-0 z-10 glass-morphism px-4 py-3 mb-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-2xl font-bold">Live Discussions</h2>
-                        <button id="startDiscussionBtn" class="bg-purple-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-purple-700 transition floating-button">
+                        <button id="startDiscussionBtn" class="bg-purple-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-purple-700 transition floating-button" aria-label="Start new discussion">
                             <i class="fas fa-plus mr-2"></i>Start
                         </button>
                     </div>
                     
                     <!-- Topic Filters -->
-                    <div class="flex space-x-2 overflow-x-auto mt-3 pb-2 scrollbar-hide" id="topicFilters">
-                        <button class="topic-filter px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition bg-purple-600 text-white" data-topic="all">
+                    <div class="flex space-x-2 overflow-x-auto mt-3 pb-2 scrollbar-hide" id="topicFilters" role="tablist" aria-label="Topic filters">
+                        <button class="topic-filter px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition bg-purple-600 text-white" data-topic="all" role="tab" aria-selected="true">
                             <i class="fas fa-globe-americas mr-1"></i>All Topics
                         </button>
-                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="trending">
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="trending" role="tab" aria-selected="false">
                             <i class="fas fa-fire mr-1"></i>Trending
                         </button>
-                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="philosophy">
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="philosophy" role="tab" aria-selected="false">
                             <i class="fas fa-brain mr-1"></i>Philosophy
                         </button>
-                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="technology">
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="technology" role="tab" aria-selected="false">
                             <i class="fas fa-microchip mr-1"></i>Technology
                         </button>
-                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="culture">
+                        <button class="topic-filter px-4 py-1.5 bg-gray-800 rounded-full text-sm whitespace-nowrap transition hover:bg-gray-700" data-topic="culture" role="tab" aria-selected="false">
                             <i class="fas fa-palette mr-1"></i>Culture
                         </button>
                     </div>
                 </div>
                 
                 <!-- Forums List -->
-                <div id="forumsList" class="px-4 space-y-3 pb-20">
+                <div id="forumsList" class="px-4 space-y-3 pb-20" role="list" aria-label="Forums list">
                     <!-- Forums will be dynamically inserted here -->
                 </div>
             </div>
@@ -139,16 +186,17 @@
                 <!-- Search -->
                 <div class="relative">
                     <input type="search" placeholder="Search discussions, topics, people..." 
-                        class="w-full px-4 py-3 pl-12 rounded-xl focus:outline-none transition glass-morphism">
-                    <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                        class="w-full px-4 py-3 pl-12 rounded-xl focus:outline-none transition glass-morphism"
+                        aria-label="Search forums">
+                    <i class="fas fa-search absolute left-4 top-4 text-gray-400" aria-hidden="true"></i>
                 </div>
                 
                 <!-- Featured Discussions -->
                 <div>
                     <h3 class="text-lg font-semibold mb-3 flex items-center">
-                        <i class="fas fa-star text-amber-500 mr-2"></i>Featured Today
+                        <i class="fas fa-star text-amber-500 mr-2" aria-hidden="true"></i>Featured Today
                     </h3>
-                    <div id="featuredForums" class="space-y-3">
+                    <div id="featuredForums" class="space-y-3" role="list" aria-label="Featured forums">
                         <!-- Featured forums will be inserted here -->
                     </div>
                 </div>
@@ -178,7 +226,7 @@
             <!-- Profile Screen -->
             <div id="profileScreen" class="hidden px-4 py-6 space-y-6">
                 <div class="text-center">
-                    <div class="w-28 h-28 bg-gradient-to-br from-purple-500 to-amber-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <div class="w-28 h-28 bg-gradient-to-br from-purple-500 to-amber-500 rounded-full mx-auto mb-4 flex items-center justify-center" aria-hidden="true">
                         <i class="fas fa-user text-4xl text-white"></i>
                     </div>
                     <h2 class="text-2xl font-bold" id="profileName"></h2>
@@ -187,8 +235,8 @@
                 
                 <!-- Settings Options -->
                 <div class="space-y-2">
-                    <button id="signOutBtn" class="w-full bg-red-500/20 text-red-400 p-4 rounded-xl flex items-center justify-center hover:bg-red-500/30 transition mt-4">
-                        <i class="fas fa-sign-out-alt mr-3"></i>Sign Out
+                    <button id="signOutBtn" class="w-full bg-red-500/20 text-red-400 p-4 rounded-xl flex items-center justify-center hover:bg-red-500/30 transition mt-4" aria-label="Sign out">
+                        <i class="fas fa-sign-out-alt mr-3" aria-hidden="true"></i>Sign Out
                     </button>
                 </div>
             </div>
@@ -199,13 +247,13 @@
                 <div class="glass-morphism px-4 py-3">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3 flex-1">
-                            <button id="exitRoomBtn" class="text-xl">
+                            <button id="exitRoomBtn" class="text-xl" aria-label="Exit room">
                                 <i class="fas fa-arrow-left"></i>
                             </button>
                             <div class="flex-1">
                                 <h3 class="font-semibold text-lg" id="roomTitle"></h3>
                                 <div class="flex items-center space-x-3 text-sm text-gray-400">
-                                    <span><i class="fas fa-users mr-1"></i><span id="participantCount">0</span></span>
+                                    <span><i class="fas fa-users mr-1" aria-hidden="true"></i><span id="participantCount">0</span></span>
                                     <span>•</span>
                                     <span id="roomTopic"></span>
                                 </div>
@@ -215,16 +263,22 @@
                 </div>
                 
                 <!-- Messages Area -->
-                <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-label="Messages" aria-live="polite">
                     <!-- Messages will be inserted here -->
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="hidden px-4 py-2 text-sm text-gray-400" aria-live="polite">
+                    <!-- Typing indicator will be inserted here -->
                 </div>
                 
                 <!-- Message Input -->
                 <div class="glass-morphism p-4">
-                    <form id="messageForm" class="flex space-x-2">
+                    <form id="messageForm" class="flex space-x-2" role="form" aria-label="Send message">
                         <input type="text" id="messageInput" placeholder="Share your thoughts..." 
-                            class="message-input flex-1 px-4 py-2.5 rounded-full focus:outline-none">
-                        <button type="submit" class="bg-purple-600 px-5 py-2.5 rounded-full hover:bg-purple-700 transition">
+                            class="message-input flex-1 px-4 py-2.5 rounded-full focus:outline-none"
+                            aria-label="Message text" maxlength="1000">
+                        <button type="submit" class="bg-purple-600 px-5 py-2.5 rounded-full hover:bg-purple-700 transition" aria-label="Send message">
                             <i class="fas fa-arrow-up"></i>
                         </button>
                     </form>
@@ -233,36 +287,37 @@
         </main>
 
         <!-- Bottom Navigation -->
-        <nav id="bottomNav" class="nav-dock hidden safe-area-inset">
+        <nav id="bottomNav" class="nav-dock hidden safe-area-inset" role="navigation" aria-label="Main navigation">
             <div class="flex justify-around py-2">
-                <button class="nav-item flex flex-col items-center p-3 active" data-screen="discussions">
-                    <i class="fas fa-comments text-xl mb-1"></i>
-                                        <span class="text-xs">Forums</span>
+                <button class="nav-item flex flex-col items-center p-3 active" data-screen="discussions" aria-label="Discussions" aria-current="page">
+                    <i class="fas fa-comments text-xl mb-1" aria-hidden="true"></i>
+                    <span class="text-xs">Forums</span>
                 </button>
-                <button class="nav-item flex flex-col items-center p-3" data-screen="discover">
-                    <i class="far fa-compass text-xl mb-1"></i>
+                <button class="nav-item flex flex-col items-center p-3" data-screen="discover" aria-label="Discover">
+                    <i class="far fa-compass text-xl mb-1" aria-hidden="true"></i>
                     <span class="text-xs">Discover</span>
                 </button>
-                <button class="nav-item flex flex-col items-center p-3" data-screen="activity">
-                    <i class="far fa-chart-bar text-xl mb-1"></i>
+                <button class="nav-item flex flex-col items-center p-3" data-screen="activity" aria-label="Activity">
+                    <i class="far fa-chart-bar text-xl mb-1" aria-hidden="true"></i>
                     <span class="text-xs">Activity</span>
                 </button>
-                <button class="nav-item flex flex-col items-center p-3" data-screen="profile">
-                    <i class="far fa-user text-xl mb-1"></i>
+                <button class="nav-item flex flex-col items-center p-3" data-screen="profile" aria-label="Profile">
+                    <i class="far fa-user text-xl mb-1" aria-hidden="true"></i>
                     <span class="text-xs">Profile</span>
                 </button>
             </div>
-            </nav>
+        </nav>
     </div>
 
-    <!-- Create Discussion Modal (ADD THIS HERE) -->
-    <div id="createDiscussionModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <!-- Create Discussion Modal -->
+    <div id="createDiscussionModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="bg-gray-900 p-6 rounded-xl max-w-sm w-full mx-4">
-            <h3 class="text-xl font-bold mb-4">Start Discussion</h3>
+            <h3 id="modal-title" class="text-xl font-bold mb-4">Start Discussion</h3>
             <form id="createDiscussionForm">
                 <input type="text" id="discussionTitle" placeholder="Discussion title" required
-                    class="w-full px-4 py-3 rounded-xl mb-3 glass-morphism">
-                <select id="discussionTopic" required class="w-full px-4 py-3 rounded-xl mb-4 glass-morphism">
+                    class="w-full px-4 py-3 rounded-xl mb-3 glass-morphism"
+                    aria-label="Discussion title" maxlength="100">
+                <select id="discussionTopic" required class="w-full px-4 py-3 rounded-xl mb-4 glass-morphism" aria-label="Discussion topic">
                     <option value="technology">Technology</option>
                     <option value="philosophy">Philosophy</option>
                     <option value="culture">Culture</option>
@@ -275,6 +330,15 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-gray-900 p-6 rounded-xl text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p class="text-white">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/script.js" defer></script>
 </body>
 </html>

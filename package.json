@@ -1,21 +1,35 @@
 {
   "name": "forum-app",
-  "version": "1.0.0",
-  "description": "Real-time forum discussion app",
+  "version": "2.0.0",
+  "description": "Real-time forum discussion app with advanced features",
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'No build step required'",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "test": "echo 'No tests specified'",
+    "lint": "echo 'No linter configured'"
   },
   "dependencies": {
     "@upstash/redis": "^1.25.0",
-    "nanoid": "^3.3.7"
+    "nanoid": "^3.3.7",
+    "compression": "^1.7.4",
+    "helmet": "^7.1.0"
   },
   "devDependencies": {
     "vercel": "^32.5.0"
   },
   "engines": {
     "node": ">=18.x"
-  }
+  },
+  "keywords": [
+    "forum",
+    "real-time",
+    "chat",
+    "discussion",
+    "pwa",
+    "vercel"
+  ],
+  "author": "Forum App Team",
+  "license": "MIT"
 }
