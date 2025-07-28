@@ -1,7 +1,51 @@
 // api/auth.js - Upgraded v2.0
-const { Redis } = require('@upstash/redis');
-const redis = Redis.fromEnv();
 const { nanoid } = require('nanoid');
+
+// Try to initialize Redis, but fall back gracefully if not available
+let redis = null;
+try {
+    const { Redis } = require('@upstash/redis');
+    redis = Redis.fromEnv();
+    console.log('Redis initialized successfully');
+} catch (error) {
+    console.warn('Redis not available, using in-memory storage for development:', error.message);
+    // Simple in-memory storage for development
+    const inMemoryStorage = new Map();
+    redis = {
+        get: async (key) => inMemoryStorage.get(key),
+        set: async (key, value, options) => {
+            inMemoryStorage.set(key, value);
+            if (options && options.ex) {
+                setTimeout(() => inMemoryStorage.delete(key), options.ex * 1000);
+            }
+        },
+        del: async (key) => inMemoryStorage.delete(key),
+        incr: async (key) => {
+            const current = inMemoryStorage.get(key) || 0;
+            const newValue = current + 1;
+            inMemoryStorage.set(key, newValue);
+            return newValue;
+        },
+        expire: async (key, seconds) => {
+            setTimeout(() => inMemoryStorage.delete(key), seconds * 1000);
+        },
+        sadd: async (key, value) => {
+            const set = inMemoryStorage.get(key) || new Set();
+            set.add(value);
+            inMemoryStorage.set(key, set);
+        },
+        srem: async (key, value) => {
+            const set = inMemoryStorage.get(key);
+            if (set) {
+                set.delete(value);
+            }
+        },
+        smembers: async (key) => {
+            const set = inMemoryStorage.get(key) || new Set();
+            return Array.from(set);
+        }
+    };
+}
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
@@ -92,7 +136,7 @@ async function handleCreateUser(req, res) {
         
         for (const existingUserId of existingUsers) {
             const existingUser = await redis.get(`user:${existingUserId}`);
-            if (existingUser && existingUser.displayName.toLowerCase() === sanitizedName.toLowerCase()) {
+            if (existingUser && typeof existingUser === 'object' && existingUser.displayName && existingUser.displayName.toLowerCase() === sanitizedName.toLowerCase()) {
                 return res.status(409).json({ error: 'Display name already taken' });
             }
         }
@@ -167,20 +211,24 @@ async function handleGetUser(req, res) {
             return res.status(404).json({ error: 'User not found' });
         }
         
+        // Ensure user is an object
+        const userObj = typeof user === 'string' ? JSON.parse(user) : user;
+        
         // Update session activity
         const session = await redis.get(`user:${userId}:session`);
         if (session) {
-            session.lastActivity = Date.now();
-            await redis.set(`user:${userId}:session`, session, { ex: 86400 });
+            const sessionObj = typeof session === 'string' ? JSON.parse(session) : session;
+            sessionObj.lastActivity = Date.now();
+            await redis.set(`user:${userId}:session`, sessionObj, { ex: 86400 });
         }
         
         // Update last active timestamp
-        user.lastActive = new Date().toISOString();
-        user.isOnline = true;
-        await redis.set(`user:${userId}`, user);
+        userObj.lastActive = new Date().toISOString();
+        userObj.isOnline = true;
+        await redis.set(`user:${userId}`, userObj);
         await redis.sadd('activeUsers', userId);
         
-        return res.status(200).json(user);
+        return res.status(200).json(userObj);
     } catch (error) {
         console.error('Error getting user:', error);
         return res.status(500).json({ error: 'Failed to get user' });
@@ -198,9 +246,10 @@ async function handleSignOut(req, res) {
         // Update user status to offline
         const user = await redis.get(`user:${userId}`);
         if (user) {
-            user.isOnline = false;
-            user.lastActive = new Date().toISOString();
-            await redis.set(`user:${userId}`, user);
+            const userObj = typeof user === 'string' ? JSON.parse(user) : user;
+            userObj.isOnline = false;
+            userObj.lastActive = new Date().toISOString();
+            await redis.set(`user:${userId}`, userObj);
         }
         
         // Clean up session and active status

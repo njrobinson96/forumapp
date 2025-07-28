@@ -204,12 +204,7 @@ function initializeEventListeners() {
         // Search input in discover screen
         const searchInput = document.querySelector('#discoverScreen input[type="search"]');
         if (searchInput) {
-            if (typeof debounce === 'function') {
-                searchInput.addEventListener('input', debounce(handleSearch, 300));
-            } else {
-                console.warn('Debounce function not available, using direct event listener');
-                searchInput.addEventListener('input', handleSearch);
-            }
+            searchInput.addEventListener('input', debounce(handleSearch, 300));
         }
         
         // Modal close on escape

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum App Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+            color: white;
+        }
+        button {
+            background-color: #8b5cf6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #7c3aed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+        }
+        .error {
+            background-color: #dc2626;
+        }
+        .success {
+            background-color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <h1>Forum App Test</h1>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label for="displayName">Display Name:</label>
+            <input type="text" id="displayName" value="Nick Robinson" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="aboutMe">About Me:</label>
+            <textarea id="aboutMe" rows="3" placeholder="What are you interested in?">Technology and Philosophy</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Interests:</label>
+            <div>
+                <input type="checkbox" id="tech" value="technology" checked>
+                <label for="tech">Technology</label>
+            </div>
+            <div>
+                <input type="checkbox" id="philosophy" value="philosophy" checked>
+                <label for="philosophy">Philosophy</label>
+            </div>
+        </div>
+        
+        <button type="submit">Test API Call</button>
+    </form>
+    
+    <div id="result" class="result" style="display: none;"></div>
+    
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const displayName = document.getElementById('displayName').value;
+            const aboutMe = document.getElementById('aboutMe').value;
+            const interests = [];
+            
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                interests.push(checkbox.value);
+            });
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = 'Testing API call...';
+            
+            try {
+                // Test with the deployed API endpoint
+                const response = await fetch('https://forumapp-zeta.vercel.app/api/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ displayName, aboutMe, interests })
+                });
+                
+                const responseText = await response.text();
+                console.log('Response status:', response.status);
+                console.log('Response text:', responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${responseText}`);
+                }
+                
+                const user = JSON.parse(responseText);
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h3>Success!</h3>
+                    <p><strong>User ID:</strong> ${user.id}</p>
+                    <p><strong>Display Name:</strong> ${user.displayName}</p>
+                    <p><strong>About Me:</strong> ${user.aboutMe}</p>
+                    <p><strong>Interests:</strong> ${user.interests.join(', ')}</p>
+                    <p><strong>Joined:</strong> ${user.joinedAt}</p>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html> 

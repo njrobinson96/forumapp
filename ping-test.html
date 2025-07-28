@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Ping Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #059669;
+        }
+        .error {
+            background-color: #dc2626;
+        }
+        .loading {
+            background-color: #d97706;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Ping Test</h1>
+    <button onclick="runTests()">Run API Tests</button>
+    <div id="results"></div>
+    
+    <script>
+        async function testEndpoint(url, name) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test-result loading';
+            resultDiv.innerHTML = `Testing ${name}...`;
+            document.getElementById('results').appendChild(resultDiv);
+            
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                if (response.ok) {
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `✅ ${name}: OK (${response.status}) - ${text.substring(0, 100)}...`;
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.innerHTML = `❌ ${name}: Error (${response.status}) - ${text}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = `❌ ${name}: Network Error - ${error.message}`;
+            }
+        }
+        
+        async function runTests() {
+            document.getElementById('results').innerHTML = '';
+            
+            // Test ping endpoint
+            await testEndpoint('https://forumapp-zeta.vercel.app/api/ping', 'Ping API');
+            
+            // Test auth endpoint with OPTIONS (CORS preflight)
+            await testEndpoint('https://forumapp-zeta.vercel.app/api/auth', 'Auth API (OPTIONS)');
+            
+            // Test forums endpoint
+            await testEndpoint('https://forumapp-zeta.vercel.app/api/forums', 'Forums API');
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html> 
