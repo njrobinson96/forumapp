@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debounce Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #059669;
+        }
+        .error {
+            background-color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debounce Function Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Copy the debounce function from script.js
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        function testDebounce() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test if debounce is defined
+                if (typeof debounce === 'function') {
+                    resultsDiv.innerHTML += '<div class="test-result success">✅ Debounce function is defined</div>';
+                } else {
+                    resultsDiv.innerHTML += '<div class="test-result error">❌ Debounce function is not defined</div>';
+                    return;
+                }
+                
+                // Test debounce functionality
+                let callCount = 0;
+                const testFunction = () => {
+                    callCount++;
+                    console.log('Test function called:', callCount);
+                };
+                
+                const debouncedTest = debounce(testFunction, 100);
+                
+                // Call it multiple times quickly
+                debouncedTest();
+                debouncedTest();
+                debouncedTest();
+                
+                setTimeout(() => {
+                    if (callCount === 1) {
+                        resultsDiv.innerHTML += '<div class="test-result success">✅ Debounce function works correctly (called once)</div>';
+                    } else {
+                        resultsDiv.innerHTML += '<div class="test-result error">❌ Debounce function failed (called ' + callCount + ' times)</div>';
+                    }
+                }, 200);
+                
+            } catch (error) {
+                resultsDiv.innerHTML += '<div class="test-result error">❌ Error testing debounce: ' + error.message + '</div>';
+            }
+        }
+        
+        // Run test when page loads
+        window.addEventListener('load', testDebounce);
+    </script>
+</body>
+</html> 

@@ -59,13 +59,16 @@ const performance = {
 document.addEventListener('DOMContentLoaded', () => {
     performance.mark('app-init-start');
     
-    initializeEventListeners();
-    initializeKeyboardShortcuts();
-    initializeOfflineSupport();
-    loadUserSession();
-    
-    // Test API connectivity
-    testAPIConnectivity();
+    // Initialize event listeners after a short delay to ensure all functions are loaded
+    setTimeout(() => {
+        initializeEventListeners();
+        initializeKeyboardShortcuts();
+        initializeOfflineSupport();
+        loadUserSession();
+        
+        // Test API connectivity
+        testAPIConnectivity();
+    }, 100);
     
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
@@ -88,7 +91,7 @@ async function testAPIConnectivity() {
         
         // Test the simple test endpoint first
         console.log('Testing /api/test...');
-        const testResponse = await fetch('/api/test', {
+        const testResponse = await fetch('https://forumapp-tcwn-cwr9xxbrg-nick-robinsons-projects-926b8386.vercel.app/api/test', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -203,8 +206,12 @@ function initializeEventListeners() {
         
         // Search input in discover screen
         const searchInput = document.querySelector('#discoverScreen input[type="search"]');
-        if (searchInput) {
-            searchInput.addEventListener('input', debounce(handleSearch, 300));
+        if (searchInput && typeof handleSearch === 'function' && typeof debounce === 'function') {
+            const debouncedSearch = debounce(handleSearch, 300);
+            searchInput.addEventListener('input', debouncedSearch);
+        } else if (searchInput && typeof handleSearch === 'function') {
+            // Fallback without debounce
+            searchInput.addEventListener('input', handleSearch);
         }
         
         // Modal close on escape
@@ -453,7 +460,7 @@ async function handleJoin(e) {
     try {
         console.log('Attempting to join with:', { displayNameValue, aboutMeValue, interests });
         
-        const response = await fetch('/api/auth', {
+        const response = await fetch('https://forumapp-tcwn-cwr9xxbrg-nick-robinsons-projects-926b8386.vercel.app/api/auth-simple', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ displayName: displayNameValue, aboutMe: aboutMeValue, interests })

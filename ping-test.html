@@ -62,13 +62,13 @@
             document.getElementById('results').innerHTML = '';
             
             // Test ping endpoint
-            await testEndpoint('https://forumapp-zeta.vercel.app/api/ping', 'Ping API');
+            await testEndpoint('https://forumapp-tcwn-cwr9xxbrg-nick-robinsons-projects-926b8386.vercel.app/api/ping', 'Ping API');
             
-            // Test auth endpoint with OPTIONS (CORS preflight)
-            await testEndpoint('https://forumapp-zeta.vercel.app/api/auth', 'Auth API (OPTIONS)');
+            // Test simple auth endpoint
+            await testEndpoint('https://forumapp-tcwn-cwr9xxbrg-nick-robinsons-projects-926b8386.vercel.app/api/auth-simple', 'Simple Auth API');
             
             // Test forums endpoint
-            await testEndpoint('https://forumapp-zeta.vercel.app/api/forums', 'Forums API');
+            await testEndpoint('https://forumapp-tcwn-cwr9xxbrg-nick-robinsons-projects-926b8386.vercel.app/api/forums', 'Forums API');
         }
         
         // Auto-run tests on page load
